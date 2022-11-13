@@ -66,6 +66,12 @@ class HashMap:
 
 if __name__ == '__main__':
     map = HashMap(2)
+    print(HashMap.hash_value('a'))
+    print(HashMap.hash_value('aa'))
+    print(HashMap.hash_value('aaa'))
+    print(HashMap.hash_value('asdasd'))
+    print(HashMap.hash_value('asiodj'))
+    print(HashMap.hash_value('ioqweioqw'))
     map.put('asdasd', 'asdasdasd')
     map.put('asiodj', (123, '1232'))
     map.put('ioqweioqw', 'ass')
