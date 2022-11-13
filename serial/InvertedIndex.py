@@ -1,6 +1,6 @@
 import os
-import re
 import string
+from HashMap import HashMap
 
 class InvertedIndex:
     def __init__(self, folder="../files/"):
@@ -33,15 +33,12 @@ class InvertedIndex:
 
     @staticmethod
     def create_index(clean_data):
-        dictionary = {}
+        dictionary = HashMap(len(clean_data)*20)
         for file_clean_data, file_name in clean_data:
             for line_num, clean_line in enumerate(file_clean_data):
                 for word_num, word in enumerate(clean_line):
                     index = (file_name, line_num, word_num)
-                    if word not in dictionary:
-                        dictionary[word] = [index]
-                    else:
-                        dictionary[word].append(index)
+                    dictionary.put(word, index)
         return dictionary
 
     def __call__(self):
