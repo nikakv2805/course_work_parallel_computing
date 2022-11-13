@@ -1,4 +1,3 @@
-import numpy
 import numpy as np
 
 P = 41
@@ -18,7 +17,7 @@ class HashMap:
         sum = 0
         for i, char in enumerate(string):
             if char.isdigit():
-                char_number = ord('z') + int(char) + 1
+                char_number = ord('z') - ord('a') + 1 + int(char)
             else:
                 char_number = ord(char) - ord('a') + 1
             sum += char_number * pow(P, i, M)
@@ -50,7 +49,7 @@ class HashMap:
         self.arr[position] = list_keys_values
 
     def get(self, key):
-        position = HashMap.hash_value(key) %self.size
+        position = HashMap.hash_value(key) % self.size
         list_keys_values = self.arr[position]
         for _key, values in list_keys_values:
             if _key == key:
