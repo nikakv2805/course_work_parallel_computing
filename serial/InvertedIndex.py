@@ -1,6 +1,9 @@
 import os
 import string
+import re
 from HashMap import HashMap
+
+TAGS_PATTERN = re.compile('<.*?>')
 
 class InvertedIndex:
     def __init__(self, folder="../files/"):
@@ -25,7 +28,8 @@ class InvertedIndex:
         for file_raw_data, file_name in raw_data:
             file_cleaned_data = []
             for line in file_raw_data:
-                words = line.lower().split()
+                line_lower = line.lower()
+                words = re.sub(TAGS_PATTERN, '', line_lower).split()
                 cleaned_words = list(map(lambda w: w.translate(mapping_table), words))
                 file_cleaned_data.append(cleaned_words)
             cleaned_data.append((file_cleaned_data, file_name))
@@ -43,11 +47,13 @@ class InvertedIndex:
 
     def __call__(self):
         files_data = self.get_data()
-        print(files_data)
+        # print(files_data)
         cleaned_data = InvertedIndex.clean_data(files_data)
         index = InvertedIndex.create_index(cleaned_data)
         return index
 
 if __name__ == "__main__":
     inverted_index = InvertedIndex()
-    print(inverted_index())
+    index = inverted_index()
+    print(index)
+    print(index['p'])
