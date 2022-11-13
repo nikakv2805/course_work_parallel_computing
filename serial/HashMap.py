@@ -1,7 +1,7 @@
 import numpy
 import numpy as np
 
-P = 31
+P = 41
 M = 10**9 + 9
 
 class HashMap:
@@ -17,7 +17,10 @@ class HashMap:
             raise Exception("Argument should be a string!")
         sum = 0
         for i, char in enumerate(string):
-            char_number = ord(char) - ord('a') + 1
+            if char.isdigit():
+                char_number = ord('z') + int(char) + 1
+            else:
+                char_number = ord(char) - ord('a') + 1
             sum += char_number * pow(P, i, M)
         sum = sum % M
         return sum

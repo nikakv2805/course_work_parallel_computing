@@ -47,7 +47,6 @@ class InvertedIndex:
 
     def __call__(self):
         files_data = self.get_data()
-        # print(files_data)
         cleaned_data = InvertedIndex.clean_data(files_data)
         index = InvertedIndex.create_index(cleaned_data)
         return index
