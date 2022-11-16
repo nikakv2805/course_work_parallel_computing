@@ -2,16 +2,23 @@ import os
 import re
 import string
 import time
-from multiprocessing import Pool
+from multiprocessing import Process, Queue
 
 from ParallelHashMap import ParallelHashMap
 
 TAGS_PATTERN = re.compile('<.*?>')
 
-def call_process(files_list, dictionary_size=40000):
-    files_data = ParallelInvertedIndex.get_data(files_list)
-    cleaned_data = ParallelInvertedIndex.clean_data(files_data)
-    return ParallelInvertedIndex.create_index(cleaned_data, dictionary_size)
+class InvertedSubindex(Process):
+    def __init__(self, files_list, queue, dictionary_size=40000):
+        super(InvertedSubindex, self).__init__()
+        self.files_list = files_list
+        self.dictionary_size = dictionary_size
+        self.queue = queue
+
+    def run(self):
+        files_data = ParallelInvertedIndex.get_data(self.files_list)
+        cleaned_data = ParallelInvertedIndex.clean_data(files_data)
+        self.queue.put(ParallelInvertedIndex.create_index(cleaned_data, self.dictionary_size))
 
 class ParallelInvertedIndex:
     def __init__(self, processes_count=4):
@@ -61,9 +68,16 @@ class ParallelInvertedIndex:
         for process_num in range(self.processes_count - 1):
             files_divided.append(files_list[files_count_on_process * process_num:files_count_on_process * (process_num + 1)])
         files_divided.append(files_list[files_count_on_process * (self.processes_count - 1):])
-        # dict_sizes = [len(files_list) * 20] * self.processes_count
-        with Pool(self.processes_count) as p:
-            dicts = p.map(call_process, files_divided)
+        dict_size = len(files_list) * 20
+        queue = Queue()
+        processes = []
+        for i in range(self.processes_count):
+            processes.append(InvertedSubindex(files_divided[i], queue, dict_size))
+            processes[i].start()
+        dicts = []
+        for _ in processes:
+            dicts.append(queue.get())
+        [proc.join() for proc in processes]
         return_dict = dicts[0]
         for i in range(1, self.processes_count):
             return_dict.unite(dicts[i])
