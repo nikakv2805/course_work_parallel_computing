@@ -8,18 +8,6 @@ from ParallelHashMap import ParallelHashMap
 
 TAGS_PATTERN = re.compile('<.*?>')
 
-class InvertedSubindex(Process):
-    def __init__(self, files_list, queue, dictionary_size=40000):
-        super(InvertedSubindex, self).__init__()
-        self.files_list = files_list
-        self.dictionary_size = dictionary_size
-        self.queue = queue
-
-    def run(self):
-        files_data = ParallelInvertedIndex.get_data(self.files_list)
-        cleaned_data = ParallelInvertedIndex.clean_data(files_data)
-        self.queue.put(ParallelInvertedIndex.create_index(cleaned_data, self.dictionary_size))
-
 class ParallelInvertedIndex:
     def __init__(self, processes_count=4):
         self.processes_count = processes_count
@@ -59,6 +47,18 @@ class ParallelInvertedIndex:
                     dictionary.put(word, index)
         return dictionary
 
+    class InvertedSubindex(Process):
+        def __init__(self, files_list, queue, dictionary_size=40000):
+            super(ParallelInvertedIndex.InvertedSubindex, self).__init__()
+            self.files_list = files_list
+            self.dictionary_size = dictionary_size
+            self.queue = queue
+
+        def run(self):
+            files_data = ParallelInvertedIndex.get_data(self.files_list)
+            cleaned_data = ParallelInvertedIndex.clean_data(files_data)
+            self.queue.put(ParallelInvertedIndex.create_index(cleaned_data, self.dictionary_size))
+
     def __call__(self, folder="../files/"):
         files_list = list(filter(lambda x: os.path.isfile(os.path.join(folder, x)),
                                  os.listdir(folder)))
@@ -72,7 +72,7 @@ class ParallelInvertedIndex:
         queue = Queue()
         processes = []
         for i in range(self.processes_count):
-            processes.append(InvertedSubindex(files_divided[i], queue, dict_size))
+            processes.append(ParallelInvertedIndex.InvertedSubindex(files_divided[i], queue, dict_size))
             processes[i].start()
         dicts = []
         for _ in processes:
