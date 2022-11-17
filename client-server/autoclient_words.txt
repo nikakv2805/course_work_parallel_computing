@@ -1,0 +1,365 @@
+In computing, a hash table, also known as hash map, is a data structure that implements an associative array or dictionary. It is an abstract data type that maps keys to values.[2] A hash table uses a hash function to compute an index, also called a hash code, into an array of buckets or slots, from which the desired value can be found. During lookup, the key is hashed and the resulting hash indicates where the corresponding value is stored.
+
+Ideally, the hash function will assign each key to a unique bucket, but most hash table designs employ an imperfect hash function, which might cause hash collisions where the hash function generates the same index for more than one key. Such collisions are typically accommodated in some way.
+
+In a well-dimensioned hash table, the average time complexity for each lookup is independent of the number of elements stored in the table. Many hash table designs also allow arbitrary insertions and deletions of key–value pairs, at amortized constant average cost per operation.[3][4][5]
+
+Hashing is an example of a space-time tradeoff. If memory is infinite, the entire key can be used directly as an index to locate its value with a single memory access. On the other hand, if infinite time is available, values can be stored without regard for their keys, and a binary search or linear search can be used to retrieve the element.[6]: 458 
+
+In many situations, hash tables turn out to be on average more efficient than search trees or any other table lookup structure. For this reason, they are widely used in many kinds of computer software, particularly for associative arrays, database indexing, caches, and sets.
+Contents
+
+    1 History
+    2 Overview
+        2.1 Load factor
+    3 Hash function
+        3.1 Integer universe assumption
+            3.1.1 Hashing by division
+            3.1.2 Hashing by multiplication
+        3.2 Choosing a hash function
+    4 Collision resolution
+        4.1 Separate chaining
+            4.1.1 Other data structures for separate chaining
+            4.1.2 Caching and locality of reference
+        4.2 Open addressing
+            4.2.1 Caching and locality of reference
+            4.2.2 Other collision resolution techniques based on open addressing
+                4.2.2.1 Coalesced hashing
+                4.2.2.2 Cuckoo hashing
+                4.2.2.3 Hopscotch hashing
+                4.2.2.4 Robin Hood hashing
+    5 Dynamic resizing
+        5.1 Resizing by moving all entries
+        5.2 Alternatives to all-at-once rehashing
+            5.2.1 Linear hashing
+    6 Performance
+    7 Applications
+        7.1 Associative arrays
+        7.2 Database indexing
+        7.3 Caches
+        7.4 Sets
+        7.5 Transposition table
+    8 Implementations
+        8.1 In programming languages
+    9 See also
+    10 References
+    11 Further reading
+    12 External links
+
+History
+
+The idea of hashing arose independently in different places. In January 1953, Hans Peter Luhn wrote an internal IBM memorandum that used hashing with chaining. Open addressing was later proposed by A. D. Linh building on Luhn's paper.[7]: 15  Around the same time, Gene Amdahl, Elaine M. McGraw, Nathaniel Rochester, and Arthur Samuel of IBM Research implemented hashing for the IBM 701 assembler.[8]: 124  Open addressing with linear probing is credited to Amdahl, although Ershov independently had the same idea.[8]: 124–125  The term "open addressing" was coined by W. Wesley Peterson on his article which discusses the problem of search in large files.[7]: 15 
+
+The first published work on hashing with chaining is credited to Arnold Dumey, who discussed the idea of using remainder module a prime as a hash function.[7]: 15  The word "hashing" was first published by an article by Robert Morris.[8]: 126  A theoretical analysis of linear probing was submitted originally by Konheim and Weiss.[7]: 15 
+Overview
+
+An associative array stores a set of (key, value) pairs and allows insertion, deletion, and lookup (search), with the constraint of unique keys. In the hash table implementation of associative arrays, an array A A of length m m is partially filled with n n elements, where m ≥ n m\geq n. A value x x gets stored at an index location A [ h ( x ) ] {\displaystyle A[h(x)]}, where h h is a hash function, and h ( x ) < m {\displaystyle h(x)<m}.[7]: 2  Under reasonable assumptions, hash tables have better time complexity bounds on search, delete, and insert operations in comparison to self-balancing binary search trees.[7]: 1 
+
+Hash tables are also commonly used to implement sets, by omitting the stored value for each key and merely tracking whether the key is present.[7]: 1 
+Load factor
+
+A load factor α \alpha is a critical statistic of a hash table, and is defined as follows:[1]
+load factor   ( α ) = n k ,
+{\displaystyle {\text{load factor}}\ (\alpha )={\frac {n}{k}},}
+where
+
+    n n is the number of entries occupied in the hash table.
+    k k is the number of buckets.
+
+The performance of the hash table deteriorates in relation to the load factor α \alpha .[7]: 2  Therefore a hash table is resized or rehashed if the load factor α \alpha approaches 1.[9] A table is also resized if the load factor drops below α max / 4 {\displaystyle \alpha _{\max }/4}.[9] Acceptable figures of load factor α \alpha include 0.6 and 0.75.[10][11]: 110 
+Hash function
+
+A hash function h h maps the universe U U of keys h : U → { 0 , . . . , m − 1 } {\displaystyle h:U\rightarrow \{0,...,m-1\}} to array indices or slots within the table for each h ( x ) ∈ 0 , . . . , m − 1 {\displaystyle h(x)\in {0,...,m-1}} where x ∈ S x\in S and m < n m<n. The conventional implementations of hash functions are based on the integer universe assumption that all elements of the table stem from the universe U = { 0 , . . . , u − 1 } {\displaystyle U=\{0,...,u-1\}}, where the bit length of u u is confined within the word size of a computer architecture.[7]: 2 
+
+A perfect hash function h h is defined as an injective function such that each element x x in S S maps to a unique value in 0 , . . . , m − 1 {\displaystyle {0,...,m-1}}.[12][13] A perfect hash function can be created if all the keys are known ahead of time.[12]
+Integer universe assumption
+
+The schemes of hashing used in integer universe assumption include hashing by division, hashing by multiplication, universal hashing, dynamic perfect hashing, and static perfect hashing.[7]: 2  However, hashing by division is the commonly used scheme.[14]: 264 [11]: 110 
+Hashing by division
+
+The scheme in hashing by division is as follows:[7]: 2 
+h ( x )   =   M mod n
+{\displaystyle h(x)\ =\ M\,{\bmod {\,}}n}
+Where M M is the hash digest of x ∈ S x\in S and n n is the size of the table.
+
+Hashing by multiplication
+
+The scheme in hashing by multiplication is as follows:[7]: 2–3 
+h ( k ) = ⌊ n M A ⌋ mod n
+{\displaystyle h(k)=\lfloor nMA\rfloor {\bmod {\,}}n}
+Where A A is a real-valued constant. An advantage of the hashing by multiplication is that the m m is not critical.[7]: 2–3  Although any value A A produces a hash function, Donald Knuth suggests using the golden ratio.[7]: 3 
+
+Choosing a hash function
+
+Uniform distribution of the hash values is a fundamental requirement of a hash function. A non-uniform distribution increases the number of collisions and the cost of resolving them. Uniformity is sometimes difficult to ensure by design, but may be evaluated empirically using statistical tests, e.g., a Pearson's chi-squared test for discrete uniform distributions.[15][16]
+
+The distribution needs to be uniform only for table sizes that occur in the application. In particular, if one uses dynamic resizing with exact doubling and halving of the table size, then the hash function needs to be uniform only when the size is a power of two. Here the index can be computed as some range of bits of the hash function. On the other hand, some hashing algorithms prefer to have the size be a prime number.[17]
+
+For open addressing schemes, the hash function should also avoid clustering, the mapping of two or more keys to consecutive slots. Such clustering may cause the lookup cost to skyrocket, even if the load factor is low and collisions are infrequent. The popular multiplicative hash is claimed to have particularly poor clustering behavior.[17][4]
+
+K-independent hashing offers a way to prove a certain hash function does not have bad keysets for a given type of hashtable. A number of K-independence results are known for collision resolution schemes such as linear probing and cuckoo hashing. Since K-independence can prove a hash function works, one can then focus on finding the fastest possible such hash function.[18]
+Collision resolution
+See also: 2-choice hashing
+
+A search algorithm that uses hashing consists of two parts. The first part is computing a hash function which transforms the search key into an array index. The ideal case is such that no two search keys hashes to the same array index. However, this is not always the case and is impossible to guarantee for unseen given data.[19]: 515  Hence the second part of the algorithm is collision resolution. The two common methods for collision resolution are separate chaining and open addressing.[6]: 458 
+Separate chaining
+Hash collision resolved by separate chaining
+Hash collision by separate chaining with head records in the bucket array.
+
+In separate chaining, the process involves building a linked list with key–value pair for each search array index. The collided items are chained together through a single linked list, which can be traversed to access the item with a unique search key.[6]: 464  Collision resolution through chaining with linked list is a common method of implementation of hash tables. Let T T and x x be the hash table and the node respectively, the operation involves as follows:[14]: 258 
+
+Chained-Hash-Insert(T, k)
+  insert x at the head of linked list T[h(k)]
+
+Chained-Hash-Search(T, k)
+  search for an element with key k in linked list T[h(k)]
+
+Chained-Hash-Delete(T, k)
+  delete x from the linked list T[h(k)]
+
+If the element is comparable either numerically or lexically, and inserted into the list by maintaining the total order, it results in faster termination of the unsuccessful searches.[19]: 520–521 
+Other data structures for separate chaining
+
+If the keys are ordered, it could be efficient to use "self-organizing" concepts such as using a self-balancing binary search tree, through which the theoretical worst case could be brought down to O ( log ⁡ n ) O(\log {n}), although it introduces additional complexities.[19]: 521 
+
+In dynamic perfect hashing, two level hash tables are used to reduce the look-up complexity to be a guaranteed O ( 1 ) O(1) in the worst case. In this technique, the buckets of k k entries are organized as perfect hash tables with k 2 k^2 slots providing constant worst-case lookup time, and low amortized time for insertion.[20] A study shows array based separate chaining to be 97% more performant when compared to the standard linked list method under heavy load.[21]: 99 
+
+Techniques such as using fusion tree for each buckets also result in constant time for all operations with high probability.[22]
+Caching and locality of reference
+
+The linked list of separate chaining implementation may not be cache-conscious due to spatial locality—locality of reference—when the nodes of the linked list are scattered across memory, thus the list traversal during insert and search may entail CPU cache inefficiencies.[21]: 91 
+
+In cache-conscious variants, a dynamic array found to be more cache-friendly is used in the place where a linked list or self-balancing binary search trees is usually deployed for collision resolution through separate chaining, since the contiguous allocation pattern of the array could be exploited by hardware-cache prefetchers—such as translation lookaside buffer—resulting in reduced access time and memory consumption.[23][24][25]
+Open addressing
+Main article: Open addressing
+Hash collision resolved by open addressing with linear probing (interval=1). Note that "Ted Baker" has a unique hash, but nevertheless collided with "Sandra Dee", that had previously collided with "John Smith".
+This graph compares the average number of CPU cache misses required to look up elements in large hash tables (far exceeding size of the cache) with chaining and linear probing. Linear probing performs better due to better locality of reference, though as the table gets full, its performance degrades drastically.
+
+Open addressing is another collision resolution technique in which every entry record is stored in the bucket array itself, and the hash resolution is performed through probing. When a new entry has to be inserted, the buckets are examined, starting with the hashed-to slot and proceeding in some probe sequence, until an unoccupied slot is found. When searching for an entry, the buckets are scanned in the same sequence, until either the target record is found, or an unused array slot is found, which indicates an unsuccessful search.[26]
+
+Well-known probe sequences include:
+
+    Linear probing, in which the interval between probes is fixed (usually 1).[27]
+    Quadratic probing, in which the interval between probes is increased by adding the successive outputs of a quadratic polynomial to the value given by the original hash computation.[28]: 272 
+    Double hashing, in which the interval between probes is computed by a secondary hash function.[28]: 272–273 
+
+The performance of open addressing may be slower compared to separate chaining since the probe sequence increases when the load factor α \alpha approaches 1.[9][21]: 93  The probing results in an infinite loop if the load factor reaches 1, in the case of a completely filled table.[6]: 471  The average cost of linear probing depends on the hash function's ability to distribute the elements uniformly throughout the table to avoid clustering, since formation of clusters would result in increased search time.[6]: 472 
+Caching and locality of reference
+
+Since the slots are located in successive locations, linear probing could lead to better utilization of CPU cache due to locality of references resulting in reduced memory latency.[27]
+Other collision resolution techniques based on open addressing
+Coalesced hashing
+Main article: Coalesced hashing
+
+Coalesced hashing is a hybrid of both separate chaining and open addressing in which the buckets or nodes link within the table.[29]: 6–8  The algorithm is ideally suited for fixed memory allocation.[29]: 4  The collision in coalesced hashing is resolved by identifying the largest-indexed empty slot on the hash table, then the colliding value is inserted into that slot. The bucket is also linked to the inserted node's slot which contains its colliding hash address.[29]: 8 
+Cuckoo hashing
+Main article: Cuckoo hashing
+
+Cuckoo hashing is a form of open addressing collision resolution technique which guarantees O ( 1 ) O(1) worst-case lookup complexity and constant amortized time for insertions. The collision is resolved through maintaining two hash tables, each having its own hashing function, and collided slot gets replaced with the given item, and the preoccupied element of the slot gets displaced into the other hash table. The process continues until every key has its own spot in the empty buckets of the tables; if the procedure enters into infinite loop—which is identified through maintaining a threshold loop counter—both hash tables get rehashed with newer hash functions and the procedure continues.[30]: 124–125 
+Hopscotch hashing
+Main article: Hopscotch hashing
+
+Hopscotch hashing is an open addressing based algorithm which combines the elements of cuckoo hashing, linear probing and chaining through the notion of a neighbourhood of buckets—the subsequent buckets around any given occupied bucket, also called a "virtual" bucket.[31]: 351–352  The algorithm is designed to deliver better performance when the load factor of the hash table grows beyond 90%; it also provides high throughput in concurrent settings, thus well suited for implementing resizable concurrent hash table.[31]: 350  The neighbourhood characteristic of hopscotch hashing guarantees a property that, the cost of finding the desired item from any given buckets within the neighbourhood is very close to the cost of finding it in the bucket itself; the algorithm attempts to be an item into its neighbourhood—with a possible cost involved in displacing other items.[31]: 352 
+
+Each bucket within the hash table includes an additional "hop-information"—an H-bit bit array for indicating the relative distance of the item which was originally hashed into the current virtual bucket within H-1 entries.[31]: 352  Let k k and B k {\displaystyle Bk} be the key to be inserted and bucket to which the key is hashed into respectively; several cases are involved in the insertion procedure such that the neighbourhood property of the algorithm is vowed:[31]: 352–353  if B k {\displaystyle Bk} is empty, the element is inserted, and the leftmost bit of bitmap is set to 1; if not empty, linear probing is used for finding an empty slot in the table, the bitmap of the bucket gets updated followed by the insertion; if the empty slot is not within the range of the neighbourhood, i.e. H-1, subsequent swap and hop-info bit array manipulation of each bucket is performed in accordance with its neighbourhood invariant properties.[31]: 353 
+Robin Hood hashing
+
+Robin hood hashing is an open addressing based collision resolution algorithm; the collisions are resolved through favouring the displacement of the element that is farthest—or longest probe sequence length (PSL)—from its "home location" i.e. the bucket to which the item was hashed into.[32]: 12  Although robin hood hashing does not change the theoretical search cost, it significantly affects the variance of the distribution of the items on the buckets,[33]: 2  i.e. dealing with cluster formation in the hash table.[34] Each node within the hash table that uses robin hood hashing should be augmented to store an extra PSL value.[35] Let x x be the key to be inserted, x . p s l {\displaystyle x.psl} be the (incremental) PSL length of x x, T T be the hash table and j j be the index, the insertion procedure is as follows:[32]: 12–13 [36]: 5 
+
+    If x . p s l   ≤   T [ j ] . p s l {\displaystyle x.psl\ \leq \ T[j].psl}: the iteration goes into the next bucket without attempting an external probe.
+    If x . p s l   >   T [ j ] . p s l {\displaystyle x.psl\ >\ T[j].psl}: insert the item x x into the bucket j j; swap x x with T [ j ] {\displaystyle T[j]}—let it be x ′ x'; continue the probe from the j + 1 j+1st bucket to insert x ′ x'; repeat the procedure until every element is inserted.
+
+Dynamic resizing
+
+Repeated insertions cause the number of entries in a hash table to grow, which consequently increases the load factor; to maintain the amortized O ( 1 ) O(1) performance of the lookup and insertion operations, a hash table is dynamically resized and the items of the tables are rehashed into the buckets of the new hash table,[9] since the items cannot be copied over as varying table sizes results in different hash value due to modulo operation.[37] If a hash table becomes "too empty" after deleting some elements, resizing may be performed to avoid excessive memory usage.[38]
+Resizing by moving all entries
+
+Generally, a new hash table with a size double that of the original hash table gets allocated privately and every item in the original hash table gets moved to the newly allocated one by computing the hash values of the items followed by the insertion operation. Rehashing is computationally expensive despite its simplicity.[39]: 478–479 
+Alternatives to all-at-once rehashing
+
+Some hash table implementations, notably in real-time systems, cannot pay the price of enlarging the hash table all at once, because it may interrupt time-critical operations. If one cannot avoid dynamic resizing, a solution is to perform the resizing gradually to avoid storage blip—typically at 50% of new table's size—during rehashing and to avoid memory fragmentation that triggers heap compaction due to deallocation of large memory blocks caused by the old hash table.[40]: 2–3  In such case, the rehashing operation is done incrementally through extending prior memory block allocated for the old hash table such that the buckets of the hash table remain unaltered. A common approach for amortized rehashing involves maintaining two hash functions h old {\displaystyle h_{\text{old}}} and h new {\displaystyle h_{\text{new}}}. The process of rehashing a bucket's items in accordance with the new hash function is termed as cleaning, which is implemented through command pattern by encapsulating the operations such as A d d ( k e y ) {\displaystyle \mathrm {Add} (\mathrm {key} )}, G e t ( k e y ) {\displaystyle \mathrm {Get} (\mathrm {key} )} and D e l e t e ( k e y ) {\displaystyle \mathrm {Delete} (\mathrm {key} )} through a L o o k u p ( k e y , command ) {\displaystyle \mathrm {Lookup} (\mathrm {key} ,{\text{command}})} wrapper such that each element in the bucket gets rehashed and its procedure involve as follows:[40]: 3 
+
+    Clean T a b l e [ h old ( k e y ) ] {\displaystyle \mathrm {Table} [h_{\text{old}}(\mathrm {key} )]} bucket.
+    Clean T a b l e [ h new ( k e y ) ] {\displaystyle \mathrm {Table} [h_{\text{new}}(\mathrm {key} )]} bucket.
+    The command gets executed.
+
+Linear hashing
+Main article: Linear hashing
+
+Linear hashing is an implementation of the hash table which enables dynamic growths or shrinks of the table one bucket at a time.[41]
+
+
+Performance
+
+The performance of a hash table is dependent on the hash function's ability in generating quasi-random numbers ( σ \sigma ) for entries in the hash table where K K, n n and h ( x ) h(x) denotes the key, number of buckets and the hash function such that σ   =   h ( K )   %   n {\displaystyle \sigma \ =\ h(K)\ \%\ n}. If the hash function generates same σ \sigma for distinct keys ( K 1 ≠ K 2 ,   h ( K 1 )   =   h ( K 2 ) {\displaystyle K_{1}\neq K_{2},\ h(K_{1})\ =\ h(K_{2})}), this results in collision, which should be dealt with in several ways. The constant time complexity ( O ( 1 ) O(1)) of the operation in a hash table is presupposed on the condition that the hash function doesn't generate colliding indices; thus, the performance of the hash table is directly proportional to the chosen hash function ability to disperse the indices.[42]: 1  However, construction of such a hash function is practically unfeasible, that being so, implementations depend on case-specific collision resolution techniques in achieving higher performance.[42]: 2 
+Applications
+Associative arrays
+Main article: Associative array
+
+Hash tables are commonly used to implement many types of in-memory tables. They are used to implement associative arrays.[28]
+Database indexing
+
+Hash tables may also be used as disk-based data structures and database indices (such as in dbm) although B-trees are more popular in these applications.[43]
+Caches
+Main article: Cache (computing)
+
+Hash tables can be used to implement caches, auxiliary data tables that are used to speed up the access to data that is primarily stored in slower media. In this application, hash collisions can be handled by discarding one of the two colliding entries—usually erasing the old item that is currently stored in the table and overwriting it with the new item, so every item in the table has a unique hash value.[44][45]
+Sets
+Main article: Set data structure
+
+Hash tables can be used in the implementation of set data structure, which can store unique values without any particular order; set is typically used in testing the membership of a value in the collection, rather than element retrieval.[46]
+Transposition table
+Main article: Transposition table
+
+A transposition table to a complex Hash Table which stores information about each section that has been searched.[47]
+Implementations
+In programming languages
+
+Many programming languages provide hash table functionality, either as built-in associative arrays or as standard library modules.
+
+In JavaScript, every value except for 7 "primitive" data types is called an "object", which uses either integers, strings, or guaranteed-unique "symbol" primitive values as keys for a hash map. ECMAScript 6 also added Map and Set data structures.[48]
+
+C++11 includes unordered_map in its standard library for storing keys and values of arbitrary types.[49]
+
+Java programming language includes the HashSet, HashMap, LinkedHashSet, and LinkedHashMap generic collections.[50]
+
+Python's built-in dict implements a hash table in the form of a type.[51]
+
+Ruby's built-in Hash uses the open addressing model from Ruby 2.4 onwards.[52]
+
+A network socket is a software structure within a network node of a computer network that serves as an endpoint for sending and receiving data across the network. The structure and properties of a socket are defined by an application programming interface (API) for the networking architecture. Sockets are created only during the lifetime of a process of an application running in the node.
+
+Because of the standardization of the TCP/IP protocols in the development of the Internet, the term network socket is most commonly used in the context of the Internet protocol suite, and is therefore often also referred to as Internet socket. In this context, a socket is externally identified to other hosts by its socket address, which is the triad of transport protocol, IP address, and port number.
+
+The term socket is also used for the software endpoint of node-internal inter-process communication (IPC), which often uses the same API as a network socket.
+Contents
+
+    1 Use
+    2 Socket addresses
+    3 Implementation
+    4 Definition
+    5 Tools
+    6 Example
+    7 Types
+    8 Socket states in the client-server model
+    9 Socket pairs
+    10 History
+    11 Sockets in network equipment
+    12 See also
+    13 References
+    14 Further reading
+    15 External links
+
+Use
+
+The use of the term socket in software is analogous to the function of an electrical female connector, a device in hardware for communication between nodes interconnected with an electrical cable. Similarly, the term port is used for external physical endpoints at a node or device.
+
+The application programming interface (API) for the network protocol stack creates a handle for each socket created by an application, commonly referred to as a socket descriptor. In Unix-like operating systems, this descriptor is a type of file descriptor. It is stored by the application process for use with every read and write operation on the communication channel.
+
+At the time of creation with the API, a network socket is bound to the combination of a type of network protocol to be used for transmissions, a network address of the host, and a port number. Ports are numbered resources that represent another type of software structure of the node. They are used as service types, and, once created by a process, serve as an externally (from the network) addressable location component, so that other hosts may establish connections.
+
+Network sockets may be dedicated for persistent connections for communication between two nodes, or they may participate in connectionless and multicast communications.
+
+In practice, due to the proliferation of the TCP/IP protocols in use on the Internet, the term network socket usually refers to use with the Internet Protocol (IP). It is therefore often also called Internet socket.
+Socket addresses
+
+An application can communicate with a remote process by exchanging data with TCP/IP by knowing the combination of protocol type, IP address, and port number. This combination is often known as a socket address. It is the network-facing access handle to the network socket. The remote process establishes a network socket in its own instance of the protocol stack, and uses the networking API to connect to the application, presenting its own socket address for use by the application.
+Implementation
+
+A protocol stack, usually provided by the operating system (rather than as a separate library, for instance), is a set of services that allow processes to communicate over a network using the protocols that the stack implements. The operating system forwards the payload of incoming IP packets to the corresponding application by extracting the socket address information from the IP and transport protocol headers and stripping the headers from the application data.
+
+The application programming interface (API) that programs use to communicate with the protocol stack, using network sockets, is called a socket API. Development of application programs that utilize this API is called socket programming or network programming. Internet socket APIs are usually based on the Berkeley sockets standard. In the Berkeley sockets standard, sockets are a form of file descriptor, due to the Unix philosophy that "everything is a file", and the analogies between sockets and files. Both have functions to read, write, open, and close. In practice the differences strain the analogy, and different interfaces (send and receive) are used on a socket. In inter-process communication, each end generally has its own socket.
+
+In the standard Internet protocols TCP and UDP, a socket address is the combination of an IP address and a port number, much like one end of a telephone connection is the combination of a phone number and a particular extension. Sockets need not have a source address, for example, for only sending data, but if a program binds a socket to a source address, the socket can be used to receive data sent to that address. Based on this address, Internet sockets deliver incoming data packets to the appropriate application process.
+
+Socket often refers specifically to an internet socket or TCP socket. An internet socket is minimally characterized by the following:
+
+    local socket address, consisting of the local IP address and (for TCP and UDP, but not IP) a port number
+    protocol: A transport protocol, e.g., TCP, UDP, raw IP. This means that (local or remote) endpoints with TCP port 53 and UDP port 53 are distinct sockets, while IP does not have ports.
+    A socket that has been connected to another socket, e.g., during the establishment of a TCP connection, also has a remote socket address.
+
+Definition
+
+The distinctions between a socket (internal representation), socket descriptor (abstract identifier), and socket address (public address) are subtle, and these are not always distinguished in everyday usage. Further, specific definitions of a socket differ between authors. In IETF Request for Comments, Internet Standards, in many textbooks, as well as in this article, the term socket refers to an entity that is uniquely identified by the socket number. In other textbooks,[1] the term socket refers to a local socket address, i.e. a "combination of an IP address and a port number". In the original definition of socket given in RFC 147,[2] as it was related to the ARPA network in 1971, "the socket is specified as a 32 bit number with even sockets identifying receiving sockets and odd sockets identifying sending sockets." Today, however, socket communications are bidirectional.
+
+Within the operating system and the application that created a socket, a socket is referred to by a unique integer value called a socket descriptor.
+Tools
+
+On Unix-like operating systems and Microsoft Windows, the command-line tools netstat or ss[3] are used to list established sockets and related information.
+Example
+
+This example, modeled according to the Berkeley socket interface, sends the string "Hello, world!" via TCP to port 80 of the host with address 1.2.3.4. It illustrates the creation of a socket (getSocket), connecting it to the remote host, sending the string, and finally closing the socket:
+
+Socket mysocket = getSocket(type = "TCP")
+connect(mysocket, address = "1.2.3.4", port = "80")
+send(mysocket, "Hello, world!")
+close(mysocket)
+
+Types
+
+Several types of Internet socket are available:
+
+Datagram sockets
+    Connectionless sockets, which use User Datagram Protocol (UDP).[4] Each packet sent or received on a datagram socket is individually addressed and routed. Order and reliability are not guaranteed with datagram sockets, so multiple packets sent from one machine or process to another may arrive in any order or might not arrive at all. Special configuration may be required to send broadcasts on a datagram socket.[5] In order to receive broadcast packets, a datagram socket should not be bound to a specific address, though in some implementations, broadcast packets may also be received when a datagram socket is bound to a specific address.[6]
+Stream sockets
+    Connection-oriented sockets, which use Transmission Control Protocol (TCP), Stream Control Transmission Protocol (SCTP) or Datagram Congestion Control Protocol (DCCP). A stream socket provides a sequenced and unique flow of error-free data without record boundaries, with well-defined mechanisms for creating and destroying connections and reporting errors. A stream socket transmits data reliably, in order, and with out-of-band capabilities. On the Internet, stream sockets are typically implemented using TCP so that applications can run across any networks using TCP/IP protocol.
+Raw sockets
+    Allow direct sending and receiving of IP packets without any protocol-specific transport layer formatting. With other types of sockets, the payload is automatically encapsulated according to the chosen transport layer protocol (e.g. TCP, UDP), and the socket user is unaware of the existence of protocol headers that are broadcast with the payload. When reading from a raw socket, the headers are usually included. When transmitting packets from a raw socket, the automatic addition of a header is optional.
+    Most socket application programming interfaces (APIs), for example, those based on Berkeley sockets, support raw sockets. Windows XP was released in 2001 with raw socket support implemented in the Winsock interface, but three years later, Microsoft limited Winsock's raw socket support because of security concerns.[7]
+    Raw sockets are used in security-related applications like Nmap. One use case for raw sockets is the implementation of new transport-layer protocols in user space.[8] Raw sockets are typically available in network equipment, and used for routing protocols such as the Internet Group Management Protocol (IGMP) and Open Shortest Path First (OSPF), and in the Internet Control Message Protocol (ICMP) used, among other things, by the ping utility.[9]
+
+Other socket types are implemented over other transport protocols, such as Systems Network Architecture[10] and Unix domain sockets for internal inter-process communication.
+Socket states in the client-server model
+
+Computer processes that provide application services are referred to as servers, and create sockets on startup that are in the listening state. These sockets are waiting for initiatives from client programs.
+
+A TCP server may serve several clients concurrently by creating a unique dedicated socket for each client connection in a new child process or processing thread for each client. These are in the established state when a socket-to-socket virtual connection or virtual circuit (VC), also known as a TCP session, is established with the remote socket, providing a duplex byte stream.
+
+A server may create several concurrently established TCP sockets with the same local port number and local IP address, each mapped to its own server-child process, serving its own client process. They are treated as different sockets by the operating system since the remote socket address (the client IP address or port number) is different; i.e. since they have different socket pair tuples.
+
+UDP sockets do not have an established state, because the protocol is connectionless. A UDP server process handles incoming datagrams from all remote clients sequentially through the same socket. UDP sockets are not identified by the remote address, but only by the local address, although each message has an associated remote address that can be retrieved from each datagram with the networking application programming interface (API).
+Socket pairs
+
+Communicating local and remote sockets are called socket pairs. Each socket pair is described by a unique 4-tuple consisting of source and destination IP addresses and port numbers, i.e. of local and remote socket addresses.[11][12] As discussed above, in the TCP case, a socket pair is associated on each end of the connection with a unique 4-tuple.
+History
+
+The term socket dates to the publication of RFC 147 in 1971, when it was used in the ARPANET. Most modern implementations of sockets are based on Berkeley sockets (1983), and other stacks such as Winsock (1991). The Berkeley sockets API in the Berkeley Software Distribution (BSD), originated with the 4.2BSD Unix operating system as an API. Only in 1989, however, could UC Berkeley release versions of its operating system and networking library free from the licensing constraints of AT&T's copyright-protected Unix.
+
+In c. 1987, AT&T introduced the STREAMS-based Transport Layer Interface (TLI) in UNIX System V Release 3 (SVR3).[13] and continued into Release 4 (SVR4).[14]
+
+Other early implementations were written for TOPS-20,[15] MVS,[15] VM,[15] IBM-DOS (PCIP).[15][16]
+Sockets in network equipment
+
+The socket is primarily a concept used in the transport layer of the Internet protocol suite or session layer of the OSI model. Networking equipment such as routers, which operate at the internet layer, and switches, which operate at the link layer, do not require implementations of the transport layer. However, stateful network firewalls, network address translators, and proxy servers keep track of active socket pairs. In multilayer switches and quality of service (QoS) support in routers, packet flows may be identified by extracting information about the socket pairs.
+
+Raw sockets are typically available in network equipment and are used for routing protocols such as IGRP and OSPF, and for Internet Control Message Protocol (ICMP).
+
+Inverted index
+From Wikipedia, the free encyclopedia
+Jump to navigation
+Jump to search
+
+In computer science, an inverted index (also referred to as a postings list, postings file, or inverted file) is a database index storing a mapping from content, such as words or numbers, to its locations in a table, or in a document or a set of documents (named in contrast to a forward index, which maps from documents to content). The purpose of an inverted index is to allow fast full-text searches, at a cost of increased processing when a document is added to the database. The inverted file may be the database file itself, rather than its index. It is the most popular data structure used in document retrieval systems,[1] used on a large scale for example in search engines. Additionally, several significant general-purpose mainframe-based database management systems have used inverted list architectures, including ADABAS, DATACOM/DB, and Model 204.
+
+There are two main variants of inverted indexes: A record-level inverted index (or inverted file index or just inverted file) contains a list of references to documents for each word. A word-level inverted index (or full inverted index or inverted list) additionally contains the positions of each word within a document.[2] The latter form offers more functionality (like phrase searches), but needs more processing power and space to be created.
+Contents
+
+    1 Applications
+    2 Compression
+    3 See also
+    4 Bibliography
+    5 References
+    6 External links
+
+Applications
+
+The inverted index data structure is a central component of a typical search engine indexing algorithm. A goal of a search engine implementation is to optimize the speed of the query: find the documents where word X occurs. Once a forward index is developed, which stores lists of words per document, it is next inverted to develop an inverted index. Querying the forward index would require sequential iteration through each document and to each word to verify a matching document. The time, memory, and processing resources to perform such a query are not always technically realistic. Instead of listing the words per document in the forward index, the inverted index data structure is developed which lists the documents per word.
+
+With the inverted index created, the query can now be resolved by jumping to the word ID (via random access) in the inverted index.
+
+In pre-computer times, concordances to important books were manually assembled. These were effectively inverted indexes with a small amount of accompanying commentary that required a tremendous amount of effort to produce.
+
+In bioinformatics, inverted indexes are very important in the sequence assembly of short fragments of sequenced DNA. One way to find the source of a fragment is to search for it against a reference DNA sequence. A small number of mismatches (due to differences between the sequenced DNA and reference DNA, or errors) can be accounted for by dividing the fragment into smaller fragments—at least one subfragment is likely to match the reference DNA sequence. The matching requires constructing an inverted index of all substrings of a certain length from the reference DNA sequence. Since the human DNA contains more than 3 billion base pairs, and we need to store a DNA substring for every index and a 32-bit integer for index itself, the storage requirement for such an inverted index would probably be in the tens of gigabytes.
+Compression
+
+For historical reasons, inverted list compression and bitmap compression were developed as separate lines of research, and only later were recognized as solving essentially the same problem.[3]

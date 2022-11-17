@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            server_respond = server_connection.recv(2048)
+            server_respond = server_connection.recv(65536)
             print(server_respond.decode(ENCODING))
 
             message = bytes(input(), encoding=ENCODING)

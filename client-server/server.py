@@ -13,7 +13,7 @@ def client_thread(conn, addr, hashtable):
 
     while True:
         try:
-            message = conn.recv(2048)
+            message = conn.recv(4096)
             if message:
                 stringigied_message = message.decode(ENCODING)
                 print(f"{addr[0]}:{addr[1]}> {stringigied_message}")
@@ -21,15 +21,18 @@ def client_thread(conn, addr, hashtable):
                 cleaned_message = clean_line(stringigied_message)
                 respond = ""
                 for word in cleaned_message:
-                    respond += str(hashtable[word])
-
+                    respond += str(hashtable[word]).replace(" ", "")
+                if len(cleaned_message) == 0:
+                    respond = "Nothing has come!"
                 try:
                     conn.send(bytes(respond, encoding=ENCODING))
                 except:
                     conn.close()
                     remove(conn)
             else:
+                conn.close()
                 remove(conn)
+                print(f"Connection removed for {addr[0]}:{addr[1]}")
         except:
             continue
 
