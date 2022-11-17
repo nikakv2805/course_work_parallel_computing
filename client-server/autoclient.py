@@ -2,11 +2,10 @@ import socket
 from random import randint
 from time import sleep
 
-from util import SERVER_IP_ADDRESS, SERVER_PORT, ENCODING
+from util import SERVER_IP_ADDRESS, SERVER_PORT, ENCODING, send_message, receive_message
 
 AUTOCLIENT_FILE = "./autoclient_words.txt"
 AUTOCLIENT_SLEEP_TIME = 1
-MAX_SYMBOLS = 128
 
 if __name__ == "__main__":
     server_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,7 +19,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            server_respond = server_connection.recv(65536)
+            server_respond = receive_message(server_connection)
             print(f"Server respond is: {server_respond.decode(ENCODING)}")
 
             sleep(AUTOCLIENT_SLEEP_TIME)
@@ -28,11 +27,9 @@ if __name__ == "__main__":
             query = lines[randint(0, lines_count - 1)][:-1]  # better to remove \n from the end
             while len(query) == 0:
                 query = lines[randint(0, lines_count - 1)][:-1]
-            if len(query) > MAX_SYMBOLS:
-                query = query[:MAX_SYMBOLS]
             print(f"Query is: {query}")
             message = bytes(query, encoding=ENCODING)
-            server_connection.send(message)
+            send_message(server_connection, message)
 
     except:
         print("Disconecting due to problems...")

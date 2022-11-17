@@ -5,18 +5,18 @@ import sys
 sys.path.append("../parallel/")
 
 from util import SERVER_IP_ADDRESS, SERVER_PORT, SERVER_MAX_CONNECTIONS_NUMBER, \
-    SERVER_CONNECTION_RESPONSE, ENCODING, clean_line
+    SERVER_CONNECTION_RESPONSE, ENCODING, clean_line, receive_message, send_message
 from parallel.ParallelInvertedIndex import ParallelInvertedIndex
 
-def client_thread(conn, addr, hashtable):
-    conn.send(bytes(SERVER_CONNECTION_RESPONSE, encoding=ENCODING))
+def client_thread(connection, address, hashtable):
+    send_message(connection, bytes(SERVER_CONNECTION_RESPONSE, encoding=ENCODING))
 
     while True:
         try:
-            message = conn.recv(4096)
+            message = receive_message(connection)
             if message:
                 stringigied_message = message.decode(ENCODING)
-                print(f"{addr[0]}:{addr[1]}> {stringigied_message}")
+                print(f"{address[0]}:{address[1]}> {stringigied_message}")
 
                 cleaned_message = clean_line(stringigied_message)
                 respond = ""
@@ -25,20 +25,20 @@ def client_thread(conn, addr, hashtable):
                 if len(cleaned_message) == 0:
                     respond = "Nothing has come!"
                 try:
-                    conn.send(bytes(respond, encoding=ENCODING))
+                    send_message(connection, bytes(respond, encoding=ENCODING))
                 except:
-                    conn.close()
-                    remove(conn)
+                    remove(connection, address)
             else:
-                conn.close()
-                remove(conn)
-                print(f"Connection removed for {addr[0]}:{addr[1]}")
+                remove(connection, address)
         except:
-            continue
+            remove(connection, address)
+            break
 
-def remove(connection):
+def remove(connection, address):
+    connection.close()
     if connection in client_list:
         client_list.remove(connection)
+    print(f"Connection removed for {address[0]}:{address[1]}")
 
 if __name__ == '__main__':
     """
@@ -63,10 +63,10 @@ if __name__ == '__main__':
 
     print("Starting to accept new connections")
     while True:
-        conn, addr = server.accept()
-        client_list.append(conn)
+        connection, address = server.accept()
+        client_list.append(connection)
 
-        print(f"{addr[0]}:{addr[1]} connected")
+        print(f"{address[0]}:{address[1]} connected")
 
-        thread = Thread(target=client_thread, args=(conn, addr, inverted_index))
+        thread = Thread(target=client_thread, args=(connection, address, inverted_index))
         thread.start()
