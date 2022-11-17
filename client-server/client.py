@@ -1,19 +1,18 @@
 import socket
 
-IP_ADDRESS = "127.0.0.1"
-PORT = 531
+from util import SERVER_IP_ADDRESS, SERVER_PORT, ENCODING
 
 if __name__ == "__main__":
     server_connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_connection.connect((IP_ADDRESS, PORT))
-    print(f"Connected to server on IP ADDRESS {IP_ADDRESS}:{PORT}")
+    server_connection.connect((SERVER_IP_ADDRESS, SERVER_PORT))
+    print(f"Connected to server on IP ADDRESS {SERVER_IP_ADDRESS}:{SERVER_PORT}")
 
     try:
         while True:
             server_respond = server_connection.recv(2048)
-            print(server_respond.decode("utf-8"))
+            print(server_respond.decode(ENCODING))
 
-            message = bytes(input(), encoding="utf-8")
+            message = bytes(input(), encoding=ENCODING)
             server_connection.send(message)
     except:
         print("Disconecting due to problems...")

@@ -1,39 +1,30 @@
 import socket
-import re
-import string
 from multiprocessing.dummy import Process as Thread
-
 import sys
+
 sys.path.append("../parallel/")
 
+from util import SERVER_IP_ADDRESS, SERVER_PORT, SERVER_MAX_CONNECTIONS_NUMBER, \
+    SERVER_CONNECTION_RESPONSE, ENCODING, clean_line
 from parallel.ParallelInvertedIndex import ParallelInvertedIndex
 
-IP_ADDRESS = "127.0.0.1"
-PORT = 531
-MAX_CONNECTIONS_NUMBER = 100
-
-TAGS_PATTERN = re.compile('<.*?>')
-
-def clientthread(conn, addr, hashtable):
-    conn.send(b"Hi! You can enter your request for index!")
-
-    mapping_table = str.maketrans('', '', string.punctuation)
+def client_thread(conn, addr, hashtable):
+    conn.send(bytes(SERVER_CONNECTION_RESPONSE, encoding=ENCODING))
 
     while True:
         try:
             message = conn.recv(2048)
             if message:
-                stringigied_message = message.decode("utf-8")
+                stringigied_message = message.decode(ENCODING)
                 print(f"{addr[0]}:{addr[1]}> {stringigied_message}")
 
-                splitted_message = re.sub(TAGS_PATTERN, '', stringigied_message.lower()).split()
-                cleaned_message = list(map(lambda w: w.translate(mapping_table), splitted_message))
+                cleaned_message = clean_line(stringigied_message)
                 respond = ""
                 for word in cleaned_message:
                     respond += str(hashtable[word])
 
                 try:
-                    conn.send(bytes(respond, encoding="utf-8"))
+                    conn.send(bytes(respond, encoding=ENCODING))
                 except:
                     conn.close()
                     remove(conn)
@@ -56,10 +47,10 @@ if __name__ == '__main__':
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    print(f"Starting server on IP ADDRESS {IP_ADDRESS}:{PORT}")
-    server.bind((IP_ADDRESS, PORT))
+    print(f"Starting server on IP ADDRESS {SERVER_IP_ADDRESS}:{SERVER_PORT}")
+    server.bind((SERVER_IP_ADDRESS, SERVER_PORT))
 
-    server.listen(MAX_CONNECTIONS_NUMBER)
+    server.listen(SERVER_MAX_CONNECTIONS_NUMBER)
 
     client_list = []
 
@@ -74,5 +65,5 @@ if __name__ == '__main__':
 
         print(f"{addr[0]}:{addr[1]} connected")
 
-        thread = Thread(target=clientthread, args=(conn, addr, inverted_index))
+        thread = Thread(target=client_thread, args=(conn, addr, inverted_index))
         thread.start()

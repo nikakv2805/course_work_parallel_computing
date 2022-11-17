@@ -1,12 +1,9 @@
 import os
-import re
-import string
 import time
 from multiprocessing import Process, Queue
 
+from util import clean_line
 from ParallelHashMap import ParallelHashMap
-
-TAGS_PATTERN = re.compile('<.*?>')
 
 class ParallelInvertedIndex:
     def __init__(self, processes_count=4):
@@ -26,14 +23,11 @@ class ParallelInvertedIndex:
     @staticmethod
     def clean_data(raw_data):
         cleaned_data = []
-        mapping_table = str.maketrans('', '', string.punctuation)
         for file_raw_data, file_name in raw_data:
             file_cleaned_data = []
             for line in file_raw_data:
-                line_lower = line.lower()
-                words = re.sub(TAGS_PATTERN, '', line_lower).split()
-                cleaned_words = list(map(lambda w: w.translate(mapping_table), words))
-                file_cleaned_data.append(cleaned_words)
+                cleaned_splitted_line = clean_line(line)
+                file_cleaned_data.append(cleaned_splitted_line)
             cleaned_data.append((file_cleaned_data, file_name))
         return cleaned_data
 
