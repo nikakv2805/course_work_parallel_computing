@@ -1,4 +1,7 @@
 import socket
+import sys
+
+sys.path.append("../")
 
 from util import SERVER_IP_ADDRESS, SERVER_PORT, ENCODING, send_message, receive_message
 

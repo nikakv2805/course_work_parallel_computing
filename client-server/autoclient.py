@@ -1,6 +1,9 @@
 import socket
 from random import randint
 from time import sleep
+import sys
+
+sys.path.append("../")
 
 from util import SERVER_IP_ADDRESS, SERVER_PORT, ENCODING, send_message, receive_message
 

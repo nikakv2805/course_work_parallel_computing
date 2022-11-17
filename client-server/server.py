@@ -3,6 +3,7 @@ from multiprocessing.dummy import Process as Thread
 import sys
 
 sys.path.append("../parallel/")
+sys.path.append("../")
 
 from util import SERVER_IP_ADDRESS, SERVER_PORT, SERVER_MAX_CONNECTIONS_NUMBER, \
     SERVER_CONNECTION_RESPONSE, ENCODING, clean_line, receive_message, send_message
