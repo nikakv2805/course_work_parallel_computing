@@ -3,6 +3,9 @@ import string
 import sys
 import math
 
+import nltk
+from nltk.corpus import stopwords
+
 SERVER_IP_ADDRESS = "127.0.0.1"
 SERVER_PORT = 531
 SERVER_MAX_CONNECTIONS_NUMBER = 100
@@ -15,10 +18,18 @@ ENCODING = "utf-8"
 TAGS_PATTERN = re.compile('<.*?>')
 MAPPING_TABLE = str.maketrans('', '', string.punctuation)
 
+try:
+    STOP_WORDS = set(stopwords.words('english'))
+except LookupError:
+    nltk.download('stopwords')
+    STOP_WORDS = set(stopwords.words('english'))
+
+
 def clean_line(line):
     splitted_line = re.sub(TAGS_PATTERN, '', line.lower()).split()
     cleaned_line = list(map(lambda w: w.translate(MAPPING_TABLE), splitted_line))
-    return cleaned_line
+    cleaned_line_without_stopwords = [word for word in cleaned_line if word not in STOP_WORDS]
+    return cleaned_line_without_stopwords
 
 def receive_message(connection):
     packets_count = int.from_bytes(connection.recv(4), INT_ORDER, signed=False)
