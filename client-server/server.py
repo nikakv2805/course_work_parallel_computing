@@ -1,5 +1,5 @@
 import socket
-from multiprocessing.dummy import Process as Thread
+from threading import Thread
 import sys
 
 sys.path.append("../parallel/")
